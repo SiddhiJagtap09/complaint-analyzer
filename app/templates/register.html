@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Register — Complaint Analyzer{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center mt-12">
+  <div class="w-full max-w-md bg-white/70 backdrop-blur-md rounded-2xl p-8 shadow-lg">
+    <h2 class="text-3xl mb-6 font-semibold text-center text-indigo-700">Create Account</h2>
+
+    <form method="post" action="{{ url_for('auth.register') }}" id="registerForm">
+      <label class="block text-lg font-medium mb-1">Name</label>
+      <input type="text" name="username" id="username" class="w-full mb-1 p-2 border rounded text-base">
+      <div class="text-red-500 text-sm mb-2" id="usernameError"></div>
+
+      <label class="block text-lg font-medium mb-1">Email</label>
+      <input type="email" name="email" id="email" class="w-full mb-1 p-2 border rounded text-base">
+      <div class="text-red-500 text-sm mb-2" id="emailError"></div>
+
+      <label class="block text-lg font-medium mb-1">Phone</label>
+      <input type="text" name="phone" id="phone" class="w-full mb-1 p-2 border rounded text-base">
+      <div class="text-red-500 text-sm mb-2" id="phoneError"></div>
+
+      <label class="block text-lg font-medium mb-1">Password</label>
+      <div class="flex mb-1">
+        <input id="reg_password" type="password" name="password" class="w-full p-2 border rounded text-base">
+        <button type="button" id="toggleRegPassword" class="ml-2 px-3 rounded bg-gray-100">🙈</button>
+      </div>
+      <div class="text-red-500 text-sm mb-2" id="passwordError"></div>
+
+      <label class="block text-lg font-medium mb-1">Role</label>
+      <select name="role" class="w-full mb-4 p-2 border rounded text-base">
+          <option value="customer">Customer</option>
+          <option value="admin">Admin</option>
+      </select>
+
+      <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-medium rounded mt-2">
+        Register
+      </button>
+    </form>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="popup-message" class="popup-flash">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<style>
+.popup-flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  animation: fadeInOut 3.5s ease-in-out;
+}
+
+.flash {
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+  min-width: 260px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  transform: scale(0.9);
+  animation: popupBounce 0.4s ease forwards;
+}
+
+.flash.success {
+  background-color: #bbf7d0;
+  color: #064e3b;
+  border: 1px solid #34d399;
+}
+
+.flash.error {
+  background-color: #fecaca;
+  color: #7f1d1d;
+  border: 1px solid #f87171;
+}
+
+@keyframes popupBounce {
+  0% { opacity: 0; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const pwd = document.getElementById("reg_password");
+  const toggleBtn = document.getElementById("toggleRegPassword");
+  toggleBtn.addEventListener("click", function() {
+    pwd.type = pwd.type === "password" ? "text" : "password";
+    this.textContent = pwd.type === "password" ? "🐵" : "🙈";
+  });
+
+  const username = document.getElementById("username");
+  const email = document.getElementById("email");
+  const phone = document.getElementById("phone");
+  const password = document.getElementById("reg_password");
+  const form = document.getElementById("registerForm");
+
+  const usernameError = document.getElementById("usernameError");
+  const emailError = document.getElementById("emailError");
+  const phoneError = document.getElementById("phoneError");
+  const passwordError = document.getElementById("passwordError");
+
+  function validateUsername() {
+    const value = username.value.trim();
+    if (!value) {
+      usernameError.textContent = "Name is required.";
+      return false;
+    } else if (/\d/.test(value)) {
+      usernameError.textContent = "Username cannot contain numbers.";
+      return false;
+    } else if (value.length < 3) {
+      usernameError.textContent = "Username must be at least 3 characters.";
+      return false;
+    } else {
+      usernameError.textContent = "";
+      return true;
+    }
+  }
+
+  function validateEmail() {
+    const value = email.value.trim();
+    if (!value) {
+      emailError.textContent = "Email is required.";
+      return false;
+    } else if (!value.includes("@") || !value.includes(".com")) {
+      emailError.textContent = "Enter a valid email with @ and .com";
+      return false;
+    } else {
+      emailError.textContent = "";
+      return true;
+    }
+  }
+
+  function validatePhone() {
+    const value = phone.value.trim();
+    if (!value) {
+      phoneError.textContent = "Phone is required.";
+      return false;
+    } else if (!/^\d{10}$/.test(value)) {
+      phoneError.textContent = "Phone must be exactly 10 digits.";
+      return false;
+    } else {
+      phoneError.textContent = "";
+      return true;
+    }
+  }
+
+  function validatePassword() {
+    const value = password.value.trim();
+    const symbolRegex = /^(?=.*[\W_]).{6,}$/; // at least 6 chars & one symbol
+    if (!value) {
+      passwordError.textContent = "Password is required.";
+      return false;
+    } else if (!symbolRegex.test(value)) {
+      passwordError.textContent = "Password must be 6+ chars & include a symbol.";
+      return false;
+    } else {
+      passwordError.textContent = "";
+      return true;
+    }
+  }
+
+  // ✅ Live validation while typing
+  username.addEventListener("input", validateUsername);
+  email.addEventListener("input", validateEmail);
+  phone.addEventListener("input", validatePhone);
+  password.addEventListener("input", validatePassword);
+
+  form.addEventListener("submit", function(e) {
+    const valid = validateUsername() && validateEmail() && validatePhone() && validatePassword();
+    if (!valid) e.preventDefault();
+  });
+
+  // Hide popup message automatically
+  const popup = document.getElementById("popup-message");
+  if (popup) {
+    setTimeout(() => popup.style.display = "none", 3500);
+  }
+});
+</script>
+{% endblock %}

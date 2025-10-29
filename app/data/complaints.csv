@@ -1,0 +1,10 @@
+id,user,type,area,status,text
+1,jiya,Drainage Blockage,Hinjewadi,pending,
+2,jiya,Garbage Collection Delay,Aundh,pending,
+3,jiya,Garbage Collection Delay,Aundh,resolved,
+4,ajun,Street Light Not Working,Karve Nagar,pending,
+5,jiya,Water Shortage,Koregaon Park,resolved,water is being short on supply
+8,Bela,Street Light Not Working,Hadapsar,pending,lights gets dim
+9,Bela,Street Light Not Working,Hadapsar,pending,lights gets dim
+10,Bela,Electricity Outage,Kharadi,pending,Electricity issues
+11,Bela,Garbage Collection Delay,Karve Nagar,pending,Garabage is not collected daily

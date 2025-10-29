@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Login — Complaint Analyzer{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center mt-12">
+  <div class="w-full max-w-md bg-white/70 backdrop-blur-md rounded-2xl p-8 shadow-lg">
+    <h2 class="text-3xl mb-6 font-semibold text-center text-indigo-700">Login to Continue</h2>
+
+    <form method="post" action="{{ url_for('auth.login') }}" id="loginForm">
+      <label class="block text-lg font-medium mb-1">Email</label>
+      <input type="email" name="email" id="email" class="w-full mb-1 p-2 border rounded text-base">
+      <div class="text-red-500 text-sm mb-2" id="emailError"></div>
+
+      <label class="block text-lg font-medium mb-1">Password</label>
+      <div class="flex mb-1">
+        <input id="password" type="password" name="password" class="w-full p-2 border rounded text-base">
+        <button type="button" id="togglePassword" class="ml-2 px-3 rounded bg-gray-100">🙈</button>
+      </div>
+      <div class="text-red-500 text-sm mb-2" id="passwordError"></div>
+
+      <!-- ✅ Forgot Password link -->
+      <div class="text-right mb-3">
+        <a href="#" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-medium rounded mt-2">
+        Login
+      </button>
+    </form>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="popup-message" class="popup-flash">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<style>
+.popup-flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  animation: fadeInOut 3.5s ease-in-out;
+}
+
+.flash {
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+  min-width: 260px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  transform: scale(0.9);
+  animation: popupBounce 0.4s ease forwards;
+}
+
+.flash.success {
+  background-color: #bbf7d0;
+  color: #064e3b;
+  border: 1px solid #34d399;
+}
+
+.flash.error {
+  background-color: #fecaca;
+  color: #7f1d1d;
+  border: 1px solid #f87171;
+}
+
+@keyframes popupBounce {
+  0% { opacity: 0; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const pwd = document.getElementById("password");
+  const toggleBtn = document.getElementById("togglePassword");
+  const email = document.getElementById("email");
+  const form = document.getElementById("loginForm");
+
+  // 🧠 Toggle password
+  toggleBtn.addEventListener("click", function() {
+    pwd.type = pwd.type === "password" ? "text" : "password";
+    this.textContent = pwd.type === "password" ? "🐵" : "🙈";
+  });
+
+  // 🧠 Live validation as user types
+  email.addEventListener("input", function() {
+    const emailError = document.getElementById("emailError");
+    if (!email.value.match(/^\S+@\S+\.\S+$/)) {
+      email.classList.add("border-red-500");
+      email.classList.remove("border-green-500");
+      emailError.textContent = "Enter a valid email.";
+    } else {
+      email.classList.add("border-green-500");
+      email.classList.remove("border-red-500");
+      emailError.textContent = "";
+    }
+  });
+
+  pwd.addEventListener("input", function() {
+    const passwordError = document.getElementById("passwordError");
+    if (pwd.value.length < 6) {
+      pwd.classList.add("border-red-500");
+      pwd.classList.remove("border-green-500");
+      passwordError.textContent = "Password must be at least 6 characters.";
+    } else {
+      pwd.classList.add("border-green-500");
+      pwd.classList.remove("border-red-500");
+      passwordError.textContent = "";
+    }
+  });
+
+  // 🧠 Final check on submit
+  form.addEventListener("submit", function(e) {
+    let valid = true;
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
+
+    if(!email.value.match(/^\S+@\S+\.\S+$/)) {
+      emailError.textContent = "Enter a valid email.";
+      valid = false;
+    }
+    if(pwd.value.length < 6) {
+      passwordError.textContent = "Password must be at least 6 characters.";
+      valid = false;
+    }
+
+    if(!valid) e.preventDefault();
+  });
+
+  // Popup fadeout
+  const popup = document.getElementById("popup-message");
+  if (popup) {
+    setTimeout(() => popup.style.display = "none", 3500);
+  }
+});
+</script>
+{% endblock %}

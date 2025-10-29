@@ -1,0 +1,18 @@
+id,user_id,username,email,phone,type,area,status,text
+2,2,Anuj1313,anuj@gmail.com,9875412587,Electricity Outage,Hadapsar,resolved,Electricity issue
+3,4,Disha909,disha@gmail.com,9867452321,Garbage Collection Delay,Karve Nagar,resolved,Garbage is not collected daily
+4,5,Jiya676,jiya@gmail.com,9865656569,Water Shortage,Karve Nagar,resolved,water shorte
+7,2,Anuj1313,anuj@gmail.com,9875412587,Road Damage,Shivaji Nagar,resolved,Complaint regarding Road damage
+8,6,Neha33,neha52@gmail.com,9864532638,Street Light Not Working,Aundh,resolved,Complaint Regarding Street light not working properly at night
+9,6,Neha33,neha52@gmail.com,9864532638,Garbage Collection Delay,Vima Nagar,resolved,Complaint regarding garbage collection delay.
+13,1,Bela222,bela@gmail.com,9862368969,Water Shortage,Vima Nagar,resolved,Water Supply have been Shorten
+14,1,Bela222,bela@gmail.com,9862368969,Road Damage,Karve Nagar,resolved,Complaint regarding damage of road.
+16,9,Priya,priya@gmail.com,9876412369,Open Manhole,Wagholi,pending,Complaint regarding open manhole in Wagholi.
+17,11,Sneha,sneha@gmail.com,9856235623,Noise Poullution,Baner,pending,Complaint regarding noise poullution in baner.
+18,12,Rutuja,rutuja@gmail.com,9856362536,Electricity Outage,Kharadi,pending,Complaint regarding electricity outage in kharadi.
+19,12,Rutuja,rutuja@gmail.com,9856362536,Street Light Not Working,Kharadi,pending,Complaint regarding Street light not working in kharadi.
+20,13,Ravi,ravi1@gmail.com,9856362536,Mosquito Breeding,Hinjewadi,resolved,Complaint regarding mosquito breeding in hinjewadi.
+21,14,Akash,akash@gmail.com,9865636245,Drainage Blockage,Viman Nagar,pending,Complaint regarding drainage blockage in Viman Nagar.
+22,14,Akash,akash@gmail.com,9865636245,Water Leakage,Viman Nagar,pending,Complaint regrading water leakage in viman nagar.
+23,15,Karan,karan@gmail.com,9863636365,Street Light Not Working,Shivaji Nagar,pending,Complaint regarding street light not working in shivaji nagar.
+24,16,Gagan,gagan@gmail.com,9875412541,Water Leakage,Wagholi,pending,Complaint regarding water leakage in wagholi.

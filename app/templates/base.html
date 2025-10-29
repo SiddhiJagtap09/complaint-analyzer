@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Complaint Analyzer{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Use your unified CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="bg-gradient-to-br from-indigo-50 via-sky-50 to-rose-50 min-h-screen relative">
+
+  <!-- Navbar -->
+  <nav class="p-4 flex justify-between items-center flex-col sm:flex-row bg-white/70 backdrop-blur-md shadow-md rounded-xl mx-4 mt-4">
+    <div class="flex items-center space-x-3">
+      <a href="{{ url_for('auth.index') }}" class="text-2xl font-bold text-slate-800 hover:text-indigo-700 transition">
+        ⚡ ComplaintAnalyzer
+      </a>
+      {% if request.endpoint != 'index' %}
+      <a href="javascript:history.back()" 
+         class="px-3 py-1.5 text-sm bg-indigo-500 text-white rounded-lg shadow hover:bg-indigo-600 transition">
+        ← Back
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="flex items-center space-x-3 mt-3 sm:mt-0">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('complaints.dashboard') }}" 
+           class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+          Dashboard
+        </a>
+        <a href="{{ url_for('auth.logout') }}" 
+           class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">
+          Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" 
+           class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+          Login
+        </a>
+        <a href="{{ url_for('auth.register') }}" 
+           class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
+          Register
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container mx-auto px-4">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ✅ Single Flash Message (Top-right corner only) -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="flash-message-container">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const flash = document.getElementById("flash-message-container");
+          if (flash) {
+            setTimeout(() => {
+              flash.classList.add("hide-flash");
+              setTimeout(() => flash.remove(), 600);
+            }, 3000);
+          }
+        });
+      </script>
+    {% endif %}
+  {% endwith %}
+
+</body>
+</html>

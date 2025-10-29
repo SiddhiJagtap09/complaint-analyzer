@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-8">
+  <h2 class="text-2xl font-bold mb-4 text-center">
+    {{ "Admin Dashboard" if is_admin else "My Complaints" }}
+  </h2>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+    <div class="bg-blue-100 text-blue-800 p-4 rounded-lg shadow">
+      <p class="text-sm font-semibold">Total Complaints</p>
+      <p class="text-2xl font-bold" id="totalCount">{{ total_complaints }}</p>
+    </div>
+    <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow">
+      <p class="text-sm font-semibold">Pending</p>
+      <p class="text-2xl font-bold" id="pendingCount">{{ pending_count }}</p>
+    </div>
+    <div class="bg-green-100 text-green-800 p-4 rounded-lg shadow">
+      <p class="text-sm font-semibold">Resolved</p>
+      <p class="text-2xl font-bold" id="resolvedCount">{{ resolved_count }}</p>
+    </div>
+  </div>
+
+  <!-- Controls Row -->
+  <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+    <div class="flex flex-wrap items-center space-x-2">
+      <!-- Show Charts -->
+      <button id="dashboardBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+        Show Charts
+      </button>
+
+      {% if not is_admin %}
+      <!-- User-only -->
+      <a href="{{ url_for('complaints.submit') }}"
+         class="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition">
+        + Add New Complaint
+      </a>
+      {% endif %}
+
+      {% if is_admin %}
+      <!-- Admin-only buttons -->
+      <button id="downloadPdf" class="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition">
+        Download Report (PDF)
+      </button>
+      <button id="exportExcel" class="px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition">
+        Export Excel
+      </button>
+      <button id="saveTop" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition" disabled>
+        Save
+      </button>
+      {% else %}
+      <!-- User-only PDF -->
+      <button id="downloadPdf" class="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition">
+        Download My Report (PDF)
+      </button>
+      {% endif %}
+    </div>
+
+    {% if is_admin %}
+    <!-- Filters (Admin only) -->
+    <div class="flex flex-wrap items-center space-x-2">
+      <select id="filterType" class="border rounded px-2 py-1">
+        <option value="">All Types</option>
+        {% for t in type_data %}
+        <option value="{{ t[0] }}">{{ t[0] }}</option>
+        {% endfor %}
+      </select>
+      <select id="filterArea" class="border rounded px-2 py-1">
+        <option value="">All Areas</option>
+        {% for a in area_data %}
+        <option value="{{ a[0] }}">{{ a[0] }}</option>
+        {% endfor %}
+      </select>
+      <select id="filterStatus" class="border rounded px-2 py-1">
+        <option value="">All Status</option>
+        {% for s in status_data %}
+        <option value="{{ s[0] }}">{{ s[0] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Charts -->
+  <div id="chartsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" style="display:none;">
+    {% set chart_list = [
+      ('typeChart','Complaints by Type (Pie)','pie'),
+      ('areaChart','Complaints by Area (Bar)','bar'),
+      ('statusChart','Complaints by Status (Line)','line'),
+      ('donutChart','Resolved vs Pending (Donut)','doughnut'),
+      ('scatterChart','Complaints Scatter','scatter'),
+      ('stackedBarChart','Complaints by Type (Stacked Bar)','bar'),
+      ('columnChart','Complaints Overview (Column)','bar'),
+      ('nightingaleChart','Complaints by Area (Nightingale)','polarArea')
+    ] %}
+    {% for id, title, type in chart_list %}
+    <div class="bg-white p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">{{ title }}</h3>
+      <canvas id="{{ id }}"></canvas>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Complaint Tables -->
+  <div id="tableWrapper">
+    {% if is_admin %}
+    <div class="overflow-x-auto">
+      <table id="complaintsTable" class="w-full border-collapse border">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border p-2">Username</th>
+            <th class="border p-2">Email</th>
+            <th class="border p-2">Phone</th>
+            <th class="border p-2">Type</th>
+            <th class="border p-2">Area</th>
+            <th class="border p-2">Description</th>
+            <th class="border p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody id="adminTbody">
+          {% for c in complaints %}
+          <tr data-type="{{ c.complaint_type.name }}" data-area="{{ c.area.name }}" data-status="{{ c.status }}">
+            <td class="border p-2">{{ c.user.username }}</td>
+            <td class="border p-2">{{ c.user.email }}</td>
+            <td class="border p-2">{{ c.user.phone }}</td>
+            <td class="border p-2">{{ c.complaint_type.name }}</td>
+            <td class="border p-2">{{ c.area.name }}</td>
+            <td class="border p-2">{{ c.text }}</td>
+            <td class="border p-2">
+              <select class="status-dropdown border rounded px-2 py-1" data-id="{{ c.id }}">
+                <option value="pending" {% if c.status == "pending" %}selected{% endif %}>Pending</option>
+                <option value="resolved" {% if c.status == "resolved" %}selected{% endif %}>Resolved</option>
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4 text-right">
+      <button id="saveBottom" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition" disabled>Save</button>
+    </div>
+    {% else %}
+    <div class="overflow-x-auto">
+      <table id="complaintsTableUser" class="w-full border-collapse border">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border p-2">Type</th>
+            <th class="border p-2">Area</th>
+            <th class="border p-2">Description</th>
+            <th class="border p-2">Status</th>
+            <th class="border p-2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="userTbody">
+          {% for c in complaints %}
+          <tr data-type="{{ c.complaint_type.name }}" data-area="{{ c.area.name }}" data-status="{{ c.status }}">
+            <td class="border p-2">{{ c.complaint_type.name }}</td>
+            <td class="border p-2">{{ c.area.name }}</td>
+            <td class="border p-2">{{ c.text }}</td>
+            <td class="border p-2">{{ c.status }}</td>
+            <td class="border p-2">
+              {% if c.status == "pending" %}
+              <form method="POST" action="{{ url_for('complaints.delete_complaint', complaint_id=c.id) }}"
+                    onsubmit="return confirm('Are you sure you want to delete this complaint?');" style="display:inline;">
+                <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+              </form>
+              {% else %}
+              <span class="text-gray-400">Cannot delete</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* -------------------- CHARTS -------------------- */
+const initialTypeData = {{ type_data | tojson }};
+const initialAreaData = {{ area_data | tojson }};
+const initialStatusData = {{ status_data | tojson }};
+let complaintsJson = {{ complaints_json | tojson }};
+let charts = {};
+let refreshTimer = null;
+
+function labelsAndValues(arr){return{labels:arr.map(x=>x[0]),values:arr.map(x=>x[1])};}
+
+function buildCharts(data){
+  const t=labelsAndValues(data.type_data),a=labelsAndValues(data.area_data),s=labelsAndValues(data.status_data);
+  const setup=(id,type,labels,values)=>({
+    type:type,data:{labels:labels,datasets:[{data:values,backgroundColor:['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#2dd4bf']}]},
+    options:{responsive:true,plugins:{legend:{display:true}}}
+  });
+  const make=(id,type,labels,values)=>{
+    if(charts[id]){charts[id].data.labels=labels;charts[id].data.datasets[0].data=values;charts[id].update();}
+    else charts[id]=new Chart(document.getElementById(id),setup(id,type,labels,values));
+  };
+  make('typeChart','pie',t.labels,t.values);
+  make('areaChart','bar',a.labels,a.values);
+  make('statusChart','line',s.labels,s.values);
+  make('donutChart','doughnut',['Resolved','Pending'],[{{ resolved_count }},{{ pending_count }}]);
+  make('stackedBarChart','bar',t.labels,t.values);
+  make('columnChart','bar',a.labels,a.values);
+  make('nightingaleChart','polarArea',a.labels,a.values);
+  make('scatterChart','scatter',[],(data.complaints||complaintsJson).map(c=>({x:c.area_id,y:c.complaint_type_id})));
+  document.getElementById("totalCount").innerText=data.total||{{ total_complaints }};
+  document.getElementById("pendingCount").innerText=data.pending||{{ pending_count }};
+  document.getElementById("resolvedCount").innerText=data.resolved||{{ resolved_count }};
+}
+
+document.getElementById("dashboardBtn").addEventListener("click",()=>{
+  document.getElementById("chartsContainer").style.display="grid";
+  buildCharts({type_data:initialTypeData,area_data:initialAreaData,status_data:initialStatusData});
+  if(!refreshTimer)refreshTimer=setInterval(async()=>{
+    const r=await fetch("/dashboard_data");
+    if(r.ok){const j=await r.json();complaintsJson=j.complaints;buildCharts(j);}
+  },10000);
+});
+
+/* -------------------- PDF EXPORT -------------------- */
+document.getElementById("downloadPdf").addEventListener("click",async()=>{
+  const ids=['typeChart','areaChart','statusChart','donutChart','stackedBarChart','columnChart','nightingaleChart'];
+  const imgs={};ids.forEach(id=>{const c=document.getElementById(id);if(c)imgs[id]=c.toDataURL("image/png");});
+  const resp=await fetch("/download_report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chart_images:imgs})});
+  const blob=await resp.blob();const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="complaint_report.pdf";a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* -------------------- EXCEL EXPORT (Admin only) -------------------- */
+{% if is_admin %}
+document.getElementById("exportExcel").addEventListener("click",()=>{window.location.href="/export_excel";});
+{% endif %}
+
+/* -------------------- ADMIN SAVE -------------------- */
+{% if is_admin %}
+const saveBtns=[document.getElementById("saveTop"),document.getElementById("saveBottom")];
+document.querySelectorAll(".status-dropdown").forEach(sel=>{
+  sel.addEventListener("change",()=>saveBtns.forEach(b=>b.disabled=false));
+});
+saveBtns.forEach(btn=>btn.addEventListener("click",async()=>{
+  const updates=[...document.querySelectorAll(".status-dropdown")].map(s=>({id:s.dataset.id,status:s.value}));
+  await fetch("/update_status_bulk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({updates})});
+  saveBtns.forEach(b=>b.disabled=true);
+}));
+{% endif %}
+
+/* -------------------- FILTERS (Admin only) -------------------- */
+{% if is_admin %}
+const filterArea=document.getElementById("filterArea");
+const filterType=document.getElementById("filterType");
+const filterStatus=document.getElementById("filterStatus");
+const rows=document.querySelectorAll("#adminTbody tr");
+function applyFilters(){
+  const a=filterArea.value.toLowerCase(),t=filterType.value.toLowerCase(),s=filterStatus.value.toLowerCase();
+  rows.forEach(r=>{
+    const ra=r.dataset.area.toLowerCase(),rt=r.dataset.type.toLowerCase(),rs=r.dataset.status.toLowerCase();
+    r.style.display=(a==""||ra.includes(a))&&(t==""||rt.includes(t))&&(s==""||rs.includes(s))?"":"none";
+  });
+}
+[filterArea,filterType,filterStatus].forEach(el=>el.addEventListener("change",applyFilters));
+{% endif %}
+
+/* ----------------------------- BULK STATUS SAVE ----------------------------- */
+{% if is_admin %}
+function collectStatusUpdates() {
+  const rows = document.querySelectorAll(".status-dropdown");
+  let updates = [];
+  rows.forEach((sel) => {
+    updates.push({
+      id: sel.dataset.id,
+      status: sel.value
+    });
+  });
+  return updates;
+}
+
+// ✨ Center Popup Message Function (Beautiful Style)
+function showPopup(message, success = true) {
+  const popup = document.createElement("div");
+  popup.innerHTML = `${success ? "✅" : "❌"} ${message}`;
+  popup.style.position = "fixed";
+  popup.style.top = "50%";
+  popup.style.left = "50%";
+  popup.style.transform = "translate(-50%, -50%)";
+  popup.style.backgroundColor = success ? "#16a34a" : "#dc2626"; /* green/red */
+  popup.style.color = "#fff";
+  popup.style.padding = "16px 28px";
+  popup.style.fontSize = "18px";
+  popup.style.fontWeight = "600";
+  popup.style.borderRadius = "10px";
+  popup.style.boxShadow = "0 4px 20px rgba(0,0,0,0.25)";
+  popup.style.zIndex = "9999";
+  popup.style.opacity = "0";
+  popup.style.transition = "opacity 0.3s ease-in-out";
+  document.body.appendChild(popup);
+  setTimeout(() => (popup.style.opacity = "1"), 50);
+  setTimeout(() => {
+    popup.style.opacity = "0";
+    setTimeout(() => popup.remove(), 300);
+  }, 2500);
+}
+
+document.getElementById("saveTop").addEventListener("click", saveAllStatuses);
+document.getElementById("saveBottom").addEventListener("click", saveAllStatuses);
+
+async function saveAllStatuses() {
+  const updates = collectStatusUpdates();
+  const resp = await fetch("/update_status_bulk", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ updates })
+  });
+  const result = await resp.json();
+  if (result.success) {
+    showPopup("Status Updated Successfully ✅", true);
+    document.getElementById("saveTop").disabled = true;
+    document.getElementById("saveBottom").disabled = true;
+
+    // Refresh charts
+    const r = await fetch("/dashboard_data");
+    if (r.ok) {
+      const j = await r.json();
+      complaintsJson = j.complaints;
+      buildCharts(j);
+    }
+  } else {
+    showPopup("Error: " + result.message, false);
+  }
+}
+
+// Enable Save button when any dropdown changes
+document.querySelectorAll(".status-dropdown").forEach(sel => {
+  sel.addEventListener("change", () => {
+    document.getElementById("saveTop").disabled = false;
+    document.getElementById("saveBottom").disabled = false;
+  });
+});
+{% endif %}
+
+</script>
+{% endblock %}
+
+
+
+
+
+

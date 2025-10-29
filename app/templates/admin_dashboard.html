@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">All Complaints (Admin)</h2>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="text-lg font-semibold mb-2">Complaints by Type</h3>
+    <canvas id="typeChart"></canvas>
+  </div>
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="text-lg font-semibold mb-2">Complaints by Area</h3>
+    <canvas id="areaChart"></canvas>
+  </div>
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="text-lg font-semibold mb-2">Complaints by Status</h3>
+    <canvas id="statusChart"></canvas>
+  </div>
+</div>
+
+<!-- Complaints Table (merged) -->
+<table class="w-full border-collapse border">
+  <thead>
+    <tr>
+      <th class="border p-2">User</th>
+      <th class="border p-2">Type</th>
+      <th class="border p-2">Area</th>
+      <th class="border p-2">Status</th>
+      <th class="border p-2">Text</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in complaints %}
+    <tr>
+      <td class="border p-2">{{ c.user.username }}</td>
+      <td class="border p-2">{{ c.complaint_type.name }}</td>
+      <td class="border p-2">{{ c.area.name }}</td>
+      <td class="border p-2">
+        <select class="status-dropdown border rounded px-2 py-1" data-id="{{ c.id }}">
+          <option value="pending" {% if c.status == "pending" %}selected{% endif %}>Pending</option>
+          <option value="resolved" {% if c.status == "resolved" %}selected{% endif %}>Resolved</option>
+        </select>
+      </td>
+      <td class="border p-2">{{ c.text }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function() {
+    const typeChartLabels = {{ type_data | map(attribute=0) | list | tojson | default('[]') }};
+    const typeChartValues = {{ type_data | map(attribute=1) | list | tojson | default('[]') }};
+
+    const areaChartLabels = {{ area_data | map(attribute=0) | list | tojson | default('[]') }};
+    const areaChartValues = {{ area_data | map(attribute=1) | list | tojson | default('[]') }};
+
+    const statusChartLabels = {{ status_data | map(attribute=0) | list | tojson | default('[]') }};
+    const statusChartValues = {{ status_data | map(attribute=1) | list | tojson | default('[]') }};
+
+    new Chart(document.getElementById("typeChart"), {
+        type: "pie",
+        data: { labels: typeChartLabels, datasets: [{ data: typeChartValues }] }
+    });
+
+    new Chart(document.getElementById("areaChart"), {
+        type: "bar",
+        data: { labels: areaChartLabels, datasets: [{ label: "Complaints", data: areaChartValues }] }
+    });
+
+    new Chart(document.getElementById("statusChart"), {
+        type: "line",
+        data: { labels: statusChartLabels, datasets: [{ label: "Complaints", data: statusChartValues, fill: false, borderColor: "blue" }] }
+    });
+})();
+</script>
+{% endblock %}

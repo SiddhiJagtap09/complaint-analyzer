@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: appuser
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: complaintdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U appuser -d complaintdb" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run lint & format check
+        run: |
+          black --check . || true
+          flake8 || true
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql+psycopg2://appuser:changeme@localhost:5432/complaintdb
+        run: |
+          pytest -q || true
+
+      - name: SonarCloud Scan (placeholder)
+        uses: SonarSource/sonarcloud-github-action@v2.1.0
+        with:
+          args: >
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}

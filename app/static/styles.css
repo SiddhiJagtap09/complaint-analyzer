@@ -1,0 +1,32 @@
+/* ✅ Unified Flash Message Style (top-right corner only) */
+#flash-message-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.flash-message {
+  padding: 12px 18px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  margin-bottom: 10px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.flash-message.success {
+  background: linear-gradient(45deg, #28a745, #34d058);
+}
+
+.flash-message.error {
+  background: linear-gradient(45deg, #dc3545, #ff6b6b);
+}
+
+.hide-flash {
+  opacity: 0;
+  transform: translateY(-20px);
+}
