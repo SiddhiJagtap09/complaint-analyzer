@@ -91,7 +91,7 @@
       ('areaChart','Complaints by Area (Bar)','bar'),
       ('statusChart','Complaints by Status (Line)','line'),
       ('donutChart','Resolved vs Pending (Donut)','doughnut'),
-      ('scatterChart','Complaints Scatter','scatter'),
+      
       ('stackedBarChart','Complaints by Type (Stacked Bar)','bar'),
       ('columnChart','Complaints Overview (Column)','bar'),
       ('nightingaleChart','Complaints by Area (Nightingale)','polarArea')
@@ -210,7 +210,7 @@ function buildCharts(data){
   make('stackedBarChart','bar',t.labels,t.values);
   make('columnChart','bar',a.labels,a.values);
   make('nightingaleChart','polarArea',a.labels,a.values);
-  make('scatterChart','scatter',[],(data.complaints||complaintsJson).map(c=>({x:c.area_id,y:c.complaint_type_id})));
+  <!-- make('scatterChart','scatter',[],(data.complaints||complaintsJson).map(c=>({x:c.area_id,y:c.complaint_type_id}))); -->
   document.getElementById("totalCount").innerText=data.total||{{ total_complaints }};
   document.getElementById("pendingCount").innerText=data.pending||{{ pending_count }};
   document.getElementById("resolvedCount").innerText=data.resolved||{{ resolved_count }};
