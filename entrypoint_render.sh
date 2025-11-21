@@ -1,7 +1,7 @@
 #!/bin/sh
 
-echo "📌 Running migrations on startup..."
-flask db upgrade || echo "⚠️ Migration failed (maybe already applied)"
+echo "📌 Applying database migrations..."
+flask db upgrade || echo "⚠️ Migrations already applied or failed"
 
-echo "🚀 Starting Gunicorn..."
+echo "🚀 Starting App..."
 exec gunicorn --bind 0.0.0.0:8000 "app:create_app()"
