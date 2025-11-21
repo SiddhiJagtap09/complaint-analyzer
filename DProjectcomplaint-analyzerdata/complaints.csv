@@ -10,9 +10,10 @@ id,user_id,username,email,phone,type,area,status,text
 16,9,Priya,priya@gmail.com,9876412369,Open Manhole,Wagholi,pending,Complaint regarding open manhole in Wagholi.
 17,11,Sneha,sneha@gmail.com,9856235623,Noise Poullution,Baner,pending,Complaint regarding noise poullution in baner.
 18,12,Rutuja,rutuja@gmail.com,9856362536,Electricity Outage,Kharadi,pending,Complaint regarding electricity outage in kharadi.
-19,12,Rutuja,rutuja@gmail.com,9856362536,Street Light Not Working,Kharadi,pending,Complaint regarding Street light not working in kharadi.
+19,12,Rutuja,rutuja@gmail.com,9856362536,Street Light Not Working,Kharadi,resolved,Complaint regarding Street light not working in kharadi.
 20,13,Ravi,ravi1@gmail.com,9856362536,Mosquito Breeding,Hinjewadi,resolved,Complaint regarding mosquito breeding in hinjewadi.
-21,14,Akash,akash@gmail.com,9865636245,Drainage Blockage,Viman Nagar,pending,Complaint regarding drainage blockage in Viman Nagar.
+21,14,Akash,akash@gmail.com,9865636245,Drainage Blockage,Viman Nagar,resolved,Complaint regarding drainage blockage in Viman Nagar.
 22,14,Akash,akash@gmail.com,9865636245,Water Leakage,Viman Nagar,pending,Complaint regrading water leakage in viman nagar.
 23,15,Karan,karan@gmail.com,9863636365,Street Light Not Working,Shivaji Nagar,pending,Complaint regarding street light not working in shivaji nagar.
 24,16,Gagan,gagan@gmail.com,9875412541,Water Leakage,Wagholi,pending,Complaint regarding water leakage in wagholi.
+25,12,Rutuja,rutuja@gmail.com,9856362536,Mosquito Breeding,Kharadi,pending,Complaints regarding mosquito breeding in Kharadi.
