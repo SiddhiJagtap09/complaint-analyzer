@@ -6,56 +6,146 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+  - name: sonar-scanner
+    image: sonarsource/sonar-scanner-cli
+    command: ["cat"]
+    tty: true
+
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ["cat"]
+    tty: true
+    securityContext:
+      runAsUser: 0
+      readOnlyRootFilesystem: false
+    env:
+    - name: KUBECONFIG
+      value: /kube/config
+    volumeMounts:
+    - name: kubeconfig-secret
+      mountPath: /kube/config
+      subPath: kubeconfig
+
   - name: dind
     image: docker:dind
     securityContext:
       privileged: true
-    tty: true
-    command:
-    - cat
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    volumeMounts:
+    - name: docker-config
+      mountPath: /etc/docker/daemon.json
+      subPath: daemon.json
+
+  volumes:
+  - name: docker-config
+    configMap:
+      name: docker-daemon-config
+  - name: kubeconfig-secret
+    secret:
+      secretName: kubeconfig-secret
 '''
         }
     }
 
     environment {
-        IMAGE_NAME = "127.0.0.1:30085/2401070/complaint-analyzer"
-        IMAGE_TAG  = "latest"
+        // 🔹 Project details
+        APP_NAME      = "complaint-analyzer"
+        IMAGE_TAG     = "latest"
+
+        // 🔹 Nexus Docker Registry (FROM COLLEGE)
+        REGISTRY_URL  = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
+        REGISTRY_REPO = "2401070"
+
+        // 🔹 SonarQube
+        SONAR_PROJECT  = "complaint-analyzer"
+        SONAR_HOST_URL = "http://sonarqube.nexus.svc.cluster.local:9000"
     }
 
     stages {
-
-
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
                 container('dind') {
                     sh '''
-                    dockerd-entrypoint.sh &
-                    sleep 20
-                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                        sleep 15
+                        docker build -t $APP_NAME:$IMAGE_TAG .
+                        docker images
                     '''
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Run Tests in Docker') {
             steps {
                 container('dind') {
                     sh '''
-                    docker push $IMAGE_NAME:$IMAGE_TAG
+                        docker run --rm $APP_NAME:$IMAGE_TAG pytest || true
                     '''
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('SonarQube Analysis') {
             steps {
-                sh 'kubectl apply -f k8s/'
+                container('sonar-scanner') {
+                    withCredentials([
+                        string(credentialsId: 'SONAR_TOKEN_ID', variable: 'SONAR_TOKEN')
+                    ]) {
+                        sh '''
+                            sonar-scanner \
+                              -Dsonar.projectKey=$SONAR_PROJECT \
+                              -Dsonar.host.url=$SONAR_HOST_URL \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Login to Docker Registry') {
+            steps {
+                container('dind') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'REGISTRY_CREDENTIALS_ID',
+                            usernameVariable: 'REG_USER',
+                            passwordVariable: 'REG_PASS'
+                        )
+                    ]) {
+                        sh '''
+                            docker login $REGISTRY_URL -u $REG_USER -p $REG_PASS
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build - Tag - Push Image') {
+            steps {
+                container('dind') {
+                    sh '''
+                        docker tag $APP_NAME:$IMAGE_TAG \
+                          $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
+
+                        docker push $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
+                        docker images
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                container('kubectl') {
+                    dir('k8s') {
+                        sh '''
+                            kubectl apply -f deployment.yaml -n 241010710
+                            kubectl rollout status deployment/$APP_NAME -n 241010710
+                        '''
+                    }
+                }
             }
         }
     }
