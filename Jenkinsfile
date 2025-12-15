@@ -1,5 +1,21 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    tty: true
+    command:
+    - cat
+'''
+        }
+    }
 
     environment {
         IMAGE_NAME = "college-registry/complaint-analyzer"
@@ -16,13 +32,23 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                container('dind') {
+                    sh '''
+                    dockerd-entrypoint.sh &
+                    sleep 20
+                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                    '''
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+                container('dind') {
+                    sh '''
+                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
+                }
             }
         }
 
