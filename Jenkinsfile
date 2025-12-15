@@ -50,15 +50,12 @@ spec:
     }
 
     environment {
-        // 🔹 Project details
         APP_NAME      = "complaint-analyzer"
         IMAGE_TAG     = "latest"
 
-        // 🔹 Nexus Docker Registry (FROM COLLEGE)
         REGISTRY_URL  = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY_REPO = "2401070"
 
-        // 🔹 SonarQube
         SONAR_PROJECT  = "complaint-analyzer"
         SONAR_HOST_URL = "http://sonarqube.nexus.svc.cluster.local:9000"
     }
@@ -78,9 +75,8 @@ spec:
         }
 
         stage('Run Tests in Docker') {
-             steps {
-        echo "Skipping tests in CI environment (DB not available)"
-    }
+            steps {
+                echo "Skipping tests in CI environment (DB not available)"
             }
         }
 
