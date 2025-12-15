@@ -109,10 +109,8 @@ spec:
         stage('Deploy Application') {
             steps {
                 container('kubectl') {
-                    sh '''
-                        kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
-                        kubectl rollout status deployment/$APP_NAME -n $K8S_NAMESPACE
-                    '''
+                     sh 'kubectl apply -f k8s/deployment.yaml -n 241010710'
+            sh 'kubectl rollout status deployment/complaint-analyzer -n 241010710'
                 }
             }
         }
