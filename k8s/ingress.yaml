@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: complaint-analyzer-ingress
+spec:
+  rules:
+    - host: complaint-analyzer.college-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: complaint-analyzer-service
+                port:
+                  number: 80

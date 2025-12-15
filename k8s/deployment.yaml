@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: complaint-analyzer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: complaint-analyzer
+  template:
+    metadata:
+      labels:
+        app: complaint-analyzer
+    spec:
+      containers:
+        - name: complaint-analyzer
+          image: college-registry/complaint-analyzer:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg2://postgres:postgres@postgres-service:5432/complaints
+            - name: SECRET_KEY
+              value: replace-me-in-env
