@@ -6,17 +6,18 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: sonar-scanner
-    image: sonarsource/sonar-scanner-cli
-    command: ["cat"]
-    tty: true
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
 
   - name: kubectl
     image: bitnami/kubectl:latest
     command: ["cat"]
     tty: true
-    securityContext:
-      runAsUser: 0
     env:
     - name: KUBECONFIG
       value: /kube/config
@@ -25,13 +26,6 @@ spec:
       mountPath: /kube/config
       subPath: kubeconfig
 
-  - name: dind
-    image: docker:dind
-    securityContext:
-      privileged: true
-    env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
   volumes:
   - name: kubeconfig-secret
     secret:
@@ -45,16 +39,24 @@ spec:
         IMAGE_TAG     = "latest"
         REGISTRY_URL  = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY_REPO = "2401070"
+        K8S_NAMESPACE = "241010710"
     }
 
     stages {
+
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
                 container('dind') {
                     sh '''
-                      sleep 10
-                      docker build -t $APP_NAME:$IMAGE_TAG .
+                        sleep 10
+                        docker build -t $APP_NAME:$IMAGE_TAG .
+                        docker images
                     '''
                 }
             }
@@ -62,30 +64,7 @@ spec:
 
         stage('Run Tests') {
             steps {
-                echo "Skipping tests (DB not available in CI environment)"
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    try {
-                        container('sonar-scanner') {
-                            withCredentials([
-                                string(credentialsId: '2401070-complaint-analyzer', variable: 'SONAR_TOKEN')
-                            ]) {
-                                sh '''
-                                  sonar-scanner \
-                                  -Dsonar.projectKey=2401070-complaint-analyzer \
-                                  -Dsonar.host.url=http://sonarqube.imcc.com \
-                                  -Dsonar.login=$SONAR_TOKEN
-                                '''
-                            }
-                        }
-                    } catch (e) {
-                        echo "SonarQube credentials not available. Skipping analysis."
-                    }
-                }
+                echo "Skipping tests (database not available in CI environment)"
             }
         }
 
@@ -102,7 +81,8 @@ spec:
                                 )
                             ]) {
                                 sh '''
-                                  docker login $REGISTRY_URL -u $REG_USER -p $REG_PASS
+                                  docker login http://nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
+                                  -u $REG_USER -p $REG_PASS
                                 '''
                             }
                         }
@@ -117,10 +97,10 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                      docker tag $APP_NAME:$IMAGE_TAG \
-                      $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
+                        docker tag $APP_NAME:$IMAGE_TAG \
+                        $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
 
-                      docker push $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG || true
+                        docker push $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG || true
                     '''
                 }
             }
@@ -130,8 +110,8 @@ spec:
             steps {
                 container('kubectl') {
                     sh '''
-                      kubectl apply -f k8s/deployment.yaml -n 241010710
-                      kubectl rollout status deployment/complaint-analyzer -n 241010710
+                        kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
+                        kubectl rollout status deployment/$APP_NAME -n $K8S_NAMESPACE
                     '''
                 }
             }
