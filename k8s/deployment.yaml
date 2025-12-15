@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: complaint-analyzer
+  namespace: 241010710
 spec:
   replicas: 1
   selector:
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
         - name: complaint-analyzer
-          image: college-registry/complaint-analyzer:latest
+          image: college-registry/2401070/complaint-analyzer:latest
           ports:
             - containerPort: 8000
           env:
