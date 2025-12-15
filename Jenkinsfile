@@ -18,7 +18,7 @@ spec:
     }
 
     environment {
-        IMAGE_NAME = "college-registry/2401070/complaint-analyzer"
+        IMAGE_NAME = "127.0.0.1:30085/2401070/complaint-analyzer"
         IMAGE_TAG  = "latest"
     }
 
