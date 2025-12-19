@@ -13,6 +13,7 @@ spec:
     env:
     - name: DOCKER_TLS_CERTDIR
       value: ""
+    command: ["sh", "-c", "dockerd-entrypoint.sh & sleep 3600"]
 
   - name: kubectl
     image: bitnami/kubectl:latest
@@ -44,17 +45,10 @@ spec:
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 container('dind') {
                     sh '''
-                        sleep 10
                         docker build -t $APP_NAME:$IMAGE_TAG .
                         docker images
                     '''
@@ -64,7 +58,7 @@ spec:
 
         stage('Run Tests') {
             steps {
-                echo "Skipping tests (database not available in CI environment)"
+                echo "Skipping tests (DB not available in CI environment)"
             }
         }
 
@@ -72,7 +66,7 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                        docker login http://nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
+                        docker login http://$REGISTRY_URL \
                         -u admin -p Changeme@2025 || true
                     '''
                 }
@@ -95,8 +89,10 @@ spec:
         stage('Deploy Application') {
             steps {
                 container('kubectl') {
-                    sh 'kubectl apply -f k8s/deployment.yaml -n 241010710'
-                    sh 'kubectl rollout status deployment/complaint-analyzer -n 241010710'
+                    sh '''
+                        kubectl apply -f k8s/deployment.yaml -n 241010710
+                        kubectl rollout status deployment/complaint-analyzer -n 241010710
+                    '''
                 }
             }
         }
