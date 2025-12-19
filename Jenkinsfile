@@ -8,7 +8,7 @@ spec:
   containers:
   - name: kubectl
     image: bitnami/kubectl:latest
-    command: ["sh", "-c", "sleep 3600"]
+    command: ["cat"]
     tty: true
     env:
     - name: KUBECONFIG
