@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: complaint-analyzer
-  namespace: "241010710"   # ✅ string (correct)
+  namespace: "2410710"   # ✅ string (correct)
 spec:
   replicas: 1
   selector:

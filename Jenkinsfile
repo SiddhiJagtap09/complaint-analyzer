@@ -14,11 +14,13 @@ spec:
     - sh
     - -c
     - |
-      dockerd-entrypoint.sh &
+      dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock &
       sleep 3600
     env:
     - name: DOCKER_TLS_CERTDIR
       value: ""
+    - name: DOCKER_HOST
+      value: tcp://127.0.0.1:2375
 
   - name: kubectl
     image: bitnami/kubectl:latest
@@ -48,7 +50,7 @@ spec:
         IMAGE_TAG     = "latest"
         REGISTRY_URL  = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY_REPO = "2401070"
-        K8S_NAMESPACE = "241010710"
+        K8S_NAMESPACE = "2410710"
     }
 
     stages {
@@ -63,7 +65,7 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                        docker info
+                        docker version
                         docker build -t $APP_NAME:$IMAGE_TAG .
                     '''
                 }
@@ -72,7 +74,7 @@ spec:
 
         stage('Run Tests') {
             steps {
-                echo "Skipping tests (database not available in CI environment)"
+                echo "Skipping tests (DB not available)"
             }
         }
 
