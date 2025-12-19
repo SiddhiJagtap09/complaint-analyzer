@@ -14,17 +14,18 @@ spec:
     - name: DOCKER_TLS_CERTDIR
       value: ""
 
-  - name: kubectl
-    image: bitnami/kubectl:latest
-    command: ["cat"]
-    tty: true
-    env:
-    - name: KUBECONFIG
-      value: /kube/config
-    volumeMounts:
-    - name: kubeconfig-secret
-      mountPath: /kube/config
-      subPath: kubeconfig
+ - name: kubectl
+  image: bitnami/kubectl:latest
+  command: ["sh", "-c", "sleep 3600"]
+  tty: true
+  env:
+  - name: KUBECONFIG
+    value: /kube/config
+  volumeMounts:
+  - name: kubeconfig-secret
+    mountPath: /kube/config
+    subPath: kubeconfig
+
 
   volumes:
   - name: kubeconfig-secret
