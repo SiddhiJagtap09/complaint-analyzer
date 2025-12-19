@@ -70,25 +70,11 @@ spec:
 
         stage('Docker Login') {
             steps {
-                script {
-                    try {
-                        container('dind') {
-                            withCredentials([
-                                usernamePassword(
-                                    credentialsId: 'REGISTRY_CREDENTIALS_ID',
-                                    usernameVariable: 'REG_USER',
-                                    passwordVariable: 'REG_PASS'
-                                )
-                            ]) {
-                                sh '''
-                                  docker login http://nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
-                                  -u $REG_USER -p $REG_PASS
-                                '''
-                            }
-                        }
-                    } catch (e) {
-                        echo "Docker registry credentials not available. Skipping login."
-                    }
+                container('dind') {
+                    sh '''
+                        docker login http://nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
+                        -u admin -p Changeme@2025
+                    '''
                 }
             }
         }
@@ -109,8 +95,8 @@ spec:
         stage('Deploy Application') {
             steps {
                 container('kubectl') {
-                     sh 'kubectl apply -f k8s/deployment.yaml -n 241010710'
-            sh 'kubectl rollout status deployment/complaint-analyzer -n 241010710'
+                    sh 'kubectl apply -f k8s/deployment.yaml -n 241010710'
+                    sh 'kubectl rollout status deployment/complaint-analyzer -n 241010710'
                 }
             }
         }
