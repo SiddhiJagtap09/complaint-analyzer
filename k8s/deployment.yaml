@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: complaint-analyzer
-          image: complaint-analyzer:latest   # image NOT used in CI
+          image: sidddhijagtap/complaint-analyzer:latest
           ports:
             - containerPort: 8000
