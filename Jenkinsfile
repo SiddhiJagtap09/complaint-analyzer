@@ -7,40 +7,38 @@ kind: Pod
 spec:
   containers:
   - name: dind
-    image: docker:dind
+    image: docker:29.1.3-dind
     securityContext:
       privileged: true
     command:
-    - sh
-    - -c
-    - |
-      dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock &
-      sleep 3600
+      - sh
+      - -c
+      - |
+        dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock &
+        sleep 25
+        tail -f /dev/null
     env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-    - name: DOCKER_HOST
-      value: tcp://127.0.0.1:2375
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
+      - name: DOCKER_HOST
+        value: tcp://127.0.0.1:2375
 
   - name: kubectl
     image: bitnami/kubectl:latest
-    command:
-    - sh
-    - -c
-    - sleep 3600
+    command: ["sh", "-c", "sleep 3600"]
     tty: true
     env:
-    - name: KUBECONFIG
-      value: /kube/config
+      - name: KUBECONFIG
+        value: /kube/config
     volumeMounts:
-    - name: kubeconfig-secret
-      mountPath: /kube/config
-      subPath: kubeconfig
+      - name: kubeconfig-secret
+        mountPath: /kube/config
+        subPath: kubeconfig
 
   volumes:
-  - name: kubeconfig-secret
-    secret:
-      secretName: kubeconfig-secret
+    - name: kubeconfig-secret
+      secret:
+        secretName: kubeconfig-secret
 '''
         }
     }
@@ -50,7 +48,7 @@ spec:
         IMAGE_TAG     = "latest"
         REGISTRY_URL  = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY_REPO = "2401070"
-        K8S_NAMESPACE = "2410710"
+        K8S_NAMESPACE = "241010710"
     }
 
     stages {
@@ -65,8 +63,8 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                        docker version
-                        docker build -t $APP_NAME:$IMAGE_TAG .
+                      docker info
+                      docker build -t $APP_NAME:$IMAGE_TAG .
                     '''
                 }
             }
@@ -74,7 +72,7 @@ spec:
 
         stage('Run Tests') {
             steps {
-                echo "Skipping tests (DB not available)"
+                echo "Skipping tests (DB not available in CI environment)"
             }
         }
 
@@ -82,8 +80,7 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                        docker login http://nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
-                        -u admin -p Changeme@2025 || true
+                      docker login http://$REGISTRY_URL -u admin -p Changeme@2025
                     '''
                 }
             }
@@ -93,10 +90,10 @@ spec:
             steps {
                 container('dind') {
                     sh '''
-                        docker tag $APP_NAME:$IMAGE_TAG \
-                        $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
+                      docker tag $APP_NAME:$IMAGE_TAG \
+                      $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
 
-                        docker push $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG || true
+                      docker push $REGISTRY_URL/$REGISTRY_REPO/$APP_NAME:$IMAGE_TAG
                     '''
                 }
             }
@@ -106,8 +103,8 @@ spec:
             steps {
                 container('kubectl') {
                     sh '''
-                        kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
-                        kubectl rollout status deployment/complaint-analyzer -n $K8S_NAMESPACE
+                      kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
+                      kubectl rollout status deployment/complaint-analyzer -n $K8S_NAMESPACE
                     '''
                 }
             }
