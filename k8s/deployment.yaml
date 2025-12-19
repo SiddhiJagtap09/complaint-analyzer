@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: complaint-analyzer
-  namespace: "2410710"   # ✅ string (correct)
+  namespace: "2410710"
 spec:
   replicas: 1
   selector:
@@ -15,11 +15,6 @@ spec:
     spec:
       containers:
         - name: complaint-analyzer
-          image: nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/2401070/complaint-analyzer:latest
+          image: complaint-analyzer:latest   # image NOT used in CI
           ports:
             - containerPort: 8000
-          env:
-            - name: DATABASE_URL
-              value: postgresql+psycopg2://postgres:postgres@postgres-service:5432/complaints
-            - name: SECRET_KEY
-              value: replace-me-in-env
