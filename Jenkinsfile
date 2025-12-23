@@ -30,7 +30,7 @@ spec:
     }
 
     environment {
-        K8S_NAMESPACE = "2410710"
+        K8S_NAMESPACE = "2401070"
     }
 
     stages {
@@ -47,10 +47,11 @@ spec:
                     sh '''
                         kubectl version --client
 
-                        # Create namespace if it does not exist
                         kubectl create namespace $K8S_NAMESPACE || true
 
-                        kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
+                        # APPLY ALL FILES (deployment + service + ingress)
+                        kubectl apply -f k8s/ -n $K8S_NAMESPACE
+
                         kubectl rollout status deployment/complaint-analyzer -n $K8S_NAMESPACE
                     '''
                 }

@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: complaint-analyzer-ingress
+  namespace: "2401070"
 spec:
   rules:
     - host: complaint-analyzer.imcc.com
