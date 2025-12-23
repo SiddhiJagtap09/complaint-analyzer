@@ -7,15 +7,16 @@ kind: Pod
 spec:
   containers:
   - name: kubectl
-    image: bitnami/kubectl:latest
-    command: ["cat"]
+    image: lachlanevenson/k8s-kubectl:v1.29.0
+    command:
+    - cat
     tty: true
     env:
     - name: KUBECONFIG
-      value: /kube/config
+      value: /root/.kube/config
     volumeMounts:
     - name: kubeconfig-secret
-      mountPath: /kube/config
+      mountPath: /root/.kube/config
       subPath: kubeconfig
   volumes:
   - name: kubeconfig-secret
@@ -47,6 +48,8 @@ spec:
             steps {
                 container('kubectl') {
                     sh '''
+                      kubectl version --client
+                      kubectl get ns
                       kubectl apply -f k8s/deployment.yaml -n 2410710
                       kubectl rollout status deployment/complaint-analyzer -n 2410710
                     '''
