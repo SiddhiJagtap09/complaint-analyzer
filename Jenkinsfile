@@ -29,6 +29,10 @@ spec:
         }
     }
 
+    environment {
+        K8S_NAMESPACE = "2410710"
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -38,20 +42,19 @@ spec:
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        container('kubectl') {
-            sh '''
-                kubectl version --client
+            steps {
+                container('kubectl') {
+                    sh '''
+                        kubectl version --client
 
-                # Create namespace if not exists
-                kubectl create namespace 2410710 || true
+                        # Create namespace if it does not exist
+                        kubectl create namespace $K8S_NAMESPACE || true
 
-                kubectl apply -f k8s/deployment.yaml -n 2410710
-                kubectl rollout status deployment/complaint-analyzer -n 2410710
-            '''
+                        kubectl apply -f k8s/deployment.yaml -n $K8S_NAMESPACE
+                        kubectl rollout status deployment/complaint-analyzer -n $K8S_NAMESPACE
+                    '''
+                }
+            }
         }
-    }
-}
-
     }
 }
