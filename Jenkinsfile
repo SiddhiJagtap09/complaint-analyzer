@@ -7,16 +7,18 @@ kind: Pod
 spec:
   containers:
   - name: kubectl
-    image: lachlanevenson/k8s-kubectl:v1.29.0
+    image: bitnami/kubectl:latest
     command:
+    - sh
+    - -c
     - cat
     tty: true
     env:
     - name: KUBECONFIG
-      value: /root/.kube/config
+      value: /kube/config
     volumeMounts:
     - name: kubeconfig-secret
-      mountPath: /root/.kube/config
+      mountPath: /kube/config
       subPath: kubeconfig
   volumes:
   - name: kubeconfig-secret
@@ -40,7 +42,7 @@ spec:
 
         stage('Build Stage') {
             steps {
-                echo "Build skipped (Docker restricted on cluster)"
+                echo "Build skipped: Docker not allowed on this cluster"
             }
         }
 
@@ -48,10 +50,17 @@ spec:
             steps {
                 container('kubectl') {
                     sh '''
-                      kubectl version --client
-                      kubectl get ns
-                      kubectl apply -f k8s/deployment.yaml -n 2410710
-                      kubectl rollout status deployment/complaint-analyzer -n 2410710
+                        echo "Checking kubectl..."
+                        kubectl version --client
+
+                        echo "Checking namespaces..."
+                        kubectl get ns
+
+                        echo "Deploying application..."
+                        kubectl apply -f k8s/deployment.yaml -n 2410710
+
+                        echo "Waiting for rollout..."
+                        kubectl rollout status deployment/complaint-analyzer -n 2410710
                     '''
                 }
             }
