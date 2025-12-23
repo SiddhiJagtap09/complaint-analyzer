@@ -38,15 +38,20 @@ spec:
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                container('kubectl') {
-                    sh '''
-                        kubectl version --client
-                        kubectl apply -f k8s/deployment.yaml -n 2410710
-                        kubectl rollout status deployment/complaint-analyzer -n 2410710
-                    '''
-                }
-            }
+    steps {
+        container('kubectl') {
+            sh '''
+                kubectl version --client
+
+                # Create namespace if not exists
+                kubectl create namespace 2410710 || true
+
+                kubectl apply -f k8s/deployment.yaml -n 2410710
+                kubectl rollout status deployment/complaint-analyzer -n 2410710
+            '''
         }
+    }
+}
+
     }
 }
