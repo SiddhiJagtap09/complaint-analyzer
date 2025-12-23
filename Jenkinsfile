@@ -9,10 +9,11 @@ spec:
   - name: kubectl
     image: bitnami/kubectl:latest
     command:
-    - sh
-    - -c
-    - cat
+      - cat
     tty: true
+    securityContext:
+      runAsUser: 0
+      readOnlyRootFilesystem: false
     env:
     - name: KUBECONFIG
       value: /kube/config
@@ -28,10 +29,6 @@ spec:
         }
     }
 
-    environment {
-        K8S_NAMESPACE = "2410710"
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -40,26 +37,12 @@ spec:
             }
         }
 
-        stage('Build Stage') {
-            steps {
-                echo "Build skipped: Docker not allowed on this cluster"
-            }
-        }
-
         stage('Deploy to Kubernetes') {
             steps {
                 container('kubectl') {
                     sh '''
-                        echo "Checking kubectl..."
                         kubectl version --client
-
-                        echo "Checking namespaces..."
-                        kubectl get ns
-
-                        echo "Deploying application..."
                         kubectl apply -f k8s/deployment.yaml -n 2410710
-
-                        echo "Waiting for rollout..."
                         kubectl rollout status deployment/complaint-analyzer -n 2410710
                     '''
                 }
