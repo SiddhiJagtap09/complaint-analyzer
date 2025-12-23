@@ -4,7 +4,7 @@ metadata:
   name: complaint-analyzer-ingress
 spec:
   rules:
-    - host: complaint-analyzer.college-domain.com
+    - host: complaint-analyzer.imcc.com
       http:
         paths:
           - path: /
